@@ -1,0 +1,85 @@
+namespace SmartCommerce.Application.Features.Products.DTOs;
+
+public record ProductDto(
+    Guid Id,
+    string Name,
+    string Slug,
+    string Description,
+    string? ShortDescription,
+    decimal Price,
+    decimal? CompareAtPrice,
+    string Sku,
+    string? ImageUrl,
+    List<string> ImageUrls,
+    bool IsActive,
+    bool IsFeatured,
+    string Status,
+    int? StockQuantity,
+    bool IsLowStock,
+    bool IsOutOfStock,
+    double AverageRating,
+    int ReviewCount,
+    string CategoryName,
+    Guid CategoryId,
+    string BrandName,
+    Guid BrandId,
+    DateTime CreatedAt);
+
+public record ProductListDto(
+    Guid Id,
+    string Name,
+    string Slug,
+    decimal Price,
+    decimal? CompareAtPrice,
+    string? ImageUrl,
+    bool IsActive,
+    bool IsFeatured,
+    double AverageRating,
+    int ReviewCount,
+    int? StockQuantity,
+    bool IsLowStock,
+    string CategoryName,
+    string BrandName);
+
+public record CreateProductDto(
+    string Name,
+    string Description,
+    string? ShortDescription,
+    decimal Price,
+    decimal? CompareAtPrice,
+    decimal CostPrice,
+    string Sku,
+    string? Barcode,
+    decimal Weight,
+    string? ImageUrl,
+    List<string>? ImageUrls,
+    Guid CategoryId,
+    Guid BrandId,
+    int InitialStock = 0,
+    int LowStockThreshold = 10);
+
+public record UpdateProductDto(
+    string Name,
+    string Description,
+    string? ShortDescription,
+    decimal Price,
+    decimal? CompareAtPrice,
+    decimal CostPrice,
+    string? ImageUrl,
+    List<string>? ImageUrls,
+    Guid CategoryId,
+    Guid BrandId);
+
+public record ProductSearchParams(
+    string? Search,
+    Guid? CategoryId,
+    Guid? BrandId,
+    decimal? MinPrice,
+    decimal? MaxPrice,
+    bool? IsActive,
+    bool? IsFeatured,
+    bool? InStock,
+    string? SortBy,
+    bool SortDescending = false,
+    int PageNumber = 1,
+    int PageSize = 20);

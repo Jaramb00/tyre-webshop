@@ -1,0 +1,54 @@
+# ───────────────────────── Secrets & environment ─────────────────────────
+# Never commit real secrets — these are provided via environment variables.
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+!.env.example
+
+# ASP.NET local/secret config (keep base appsettings.json as a template)
+**/appsettings.Development.json
+**/appsettings.Docker.json
+**/appsettings.Production.json
+**/appsettings.Local.json
+**/secrets.json
+secrets/
+*.pfx
+*.key
+*.pem
+
+# ───────────────────────── Node / frontend ─────────────────────────
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+coverage/
+.eslintcache
+
+# ───────────────────────── .NET / backend ─────────────────────────
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+logs/
+*.log
+
+# ───────────────────────── Claude Code tooling (not part of the app) ─────────────────────────
+.claude/
+.agents/
+memory/
+MEMORY.md
+skills-lock.json
+
+# ───────────────────────── OS / editor ─────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/

@@ -1,0 +1,13 @@
+# Netlify config. In the Netlify UI set "Base directory" to this folder:
+#   SmartCommerce/src/SmartCommerce.Frontend
+# (paths below are then relative to that base).
+
+[build]
+  command = "vite build"
+  publish = "dist"
+
+# SPA fallback — every route serves index.html so client-side routing works.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

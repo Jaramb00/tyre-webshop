@@ -1,0 +1,36 @@
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+
+COPY ["src/SmartCommerce.API/SmartCommerce.API.csproj", "src/SmartCommerce.API/"]
+COPY ["src/SmartCommerce.Application/SmartCommerce.Application.csproj", "src/SmartCommerce.Application/"]
+COPY ["src/SmartCommerce.Domain/SmartCommerce.Domain.csproj", "src/SmartCommerce.Domain/"]
+COPY ["src/SmartCommerce.Infrastructure/SmartCommerce.Infrastructure.csproj", "src/SmartCommerce.Infrastructure/"]
+
+RUN dotnet restore "src/SmartCommerce.API/SmartCommerce.API.csproj"
+
+COPY . .
+WORKDIR "/src/src/SmartCommerce.API"
+RUN dotnet build "SmartCommerce.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "SmartCommerce.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Create logs directory
+RUN mkdir -p /app/logs && chmod 777 /app/logs
+
+# Non-root user for security
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+USER appuser
+
+ENTRYPOINT ["dotnet", "SmartCommerce.API.dll"]

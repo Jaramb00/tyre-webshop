@@ -1,0 +1,139 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: smartcommerce-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=smartcommerce;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
+      - ConnectionStrings__Redis=redis:6379
+      - Jwt__SecretKey=${JWT_SECRET_KEY:-SmartCommerce_SuperSecretKey_AtLeast32Chars_ChangeInProd!}
+      - Jwt__Issuer=SmartCommerce
+      - Jwt__Audience=SmartCommerce
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      - SendGrid__ApiKey=${SENDGRID_API_KEY:-SG.placeholder}
+      - OpenWeather__ApiKey=${OPENWEATHER_API_KEY:-placeholder}
+      - ExchangeRate__ApiKey=${EXCHANGERATE_API_KEY:-placeholder}
+      - Frontend__Url=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: smartcommerce-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartcommerce-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: smartcommerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartcommerce-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hangfire:
+    image: smartcommerce-api:latest
+    container_name: smartcommerce-hangfire
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=smartcommerce;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
+      - ConnectionStrings__Redis=redis:6379
+    command: ["dotnet", "SmartCommerce.API.dll", "--hangfire-only"]
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: smartcommerce-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: smartcommerce-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - smartcommerce-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  smartcommerce-network:
+    driver: bridge
