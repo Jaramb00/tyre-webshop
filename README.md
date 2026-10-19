@@ -6,7 +6,7 @@ A modern webshop and online presence for **Vulkanizer Željko**, a tyre and whee
 The site is built to immediately communicate one thing: **tyres, performance, and professional
 automotive service** — not a generic e-commerce template.
 
-🔗 **Live preview:** _add your Vercel URL here_
+🔗 **Live preview:** https://tyre-webshop.vercel.app
 📦 **Repository:** https://github.com/Jaramb00/tyre-webshop
 
 ---
